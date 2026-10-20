@@ -1,7 +1,7 @@
 # US2 Search and Consultation Acceptance Record
 
 **Feature**: `001-forms-apex-migration`  
-**Status**: Form 1 source-contract check passed; a local demo scope is approved, but APEX behavioral scenarios are not yet executed. Production authorization and data scope remain unapproved.  
+**Status**: `F1-SRC-01` and the approved local `F1-DEMO-01` preview passed. The broader US2 scenarios and production authorization remain untested/unapproved.  
 **Data boundary**: Sanitized, isolated fixtures only. Never copy production data or run write tests against the legacy schema.
 
 ## Source-backed Journeys
@@ -23,14 +23,14 @@ These are source observations, not approval of which columns a user may see or s
 
 Re-run with `python -m unittest tests.tools.test_migration_audit.AuditToolkitTests.test_form_inspection_returns_structured_qafe_form1_query_facts -v`. This verifies the exported XML contract, not Forms runtime or APEX behavior.
 
-## Local Demo Decision (2026-10-19)
+## Local Demo Decision (2026-10-19; clean-destination extension 2026-10-20)
 
 - Actor: any authenticated user of the local demo workspace only.
 - Data: local example COURSE data; first assertions cover sample course numbers 454, 455, and 456 from `script/student-db-script.sql`.
 - Visible columns: `COURSE_NO`, `DESCRIPTION`, and `COST` only.
 - List behavior: unfiltered COURSE list, sorted by `COURSE_NO` ascending, 10 rows per page.
 - Writes: create, update, and delete remain denied.
-- Boundary: local `ORACLE_FORMS_EXAMPLES` PDB and `127.0.0.1` only. These choices are not claims about Forms behavior or production authorization.
+- Initial boundary: local `ORACLE_FORMS_EXAMPLES` PDB and `127.0.0.1` only. On 2026-10-20 the owner selected the side-by-side `QAFE_CLEAN` PDB/workspace for the first migration slice; the same three-column, three-row, read-only preview is loopback-only. These choices are not claims about Forms behavior or production authorization.
 
 ## Acceptance Scenarios
 
@@ -44,14 +44,14 @@ Re-run with `python -m unittest tests.tools.test_migration_audit.AuditToolkitTes
 | US2-AC-06 | Approved read scope | After the owner approves named roles and row/column scope, run the matching, empty, and multiple-result scenarios as each permitted role and as a role without that grant. | Permitted reads show only the approved scope; unapproved roles remain denied. Changing URL, request parameters, or session state cannot broaden access. | Blocked on owner-approved authorization matrix. |
 | US2-AC-07 | Read-only behavior | Run all search, result navigation, and related-section scenarios; attempt any write path available from the page or direct request. | Consultation does not insert, update, or delete records. Business writes remain denied until separately approved; no search page infers authorization from Forms DML flags. | Defined; execute with isolated fixture after implementation. |
 
-| F1-DEMO-01 | Local Form 1 read-only list | Sign in as an authenticated user of the local demo workspace and open the unfiltered COURSE list. | Only `COURSE_NO`, `DESCRIPTION`, and `COST` are visible; rows are ordered by `COURSE_NO` ascending, page size is 10, and the local sample rows 454/455/456 appear with the expected values. No data is changed. | Workspace and builder provisioned; application creation and test execution remain. |
+| F1-DEMO-01 | Local Form 1 read-only list | Sign in to `QAFE_FORMS_CLEAN` as `QAFE_FORMS_BUILDER`, open application 100 page 4, remove the initial session filter, and reload after saving default report settings. | Only `COURSE_NO`, `DESCRIPTION`, and `COST` are visible; rows 454/455/456 show English Grammar/30, Mathematics/20, and Dutch Grammar/40 in ascending course-number order. The shared default rows-per-page setting is 10. The page is an Interactive Report with no form or DML process. | PASS, 2026-10-20: all three rows and columns observed; the 10-row default remained selected after reload. No write action was invoked. |
 
 ## Open Decisions / Test Data
 
 - `docs/migration-mapping.md` records the Form 1 source facts: no explicit block filter or ordering, eight projected columns, query-enabled items, and the unresolved COURSE_NO binding. The approved local demo settings are separate from Forms behavior.
 - Forms desktop overflow does not establish APEX pagination semantics; the 10-row page and ascending order are local demo choices only.
 - `docs/security-matrix.md` retains default deny for general and production use; the authenticated local demo scope is a narrow exception and does not approve other data or roles.
-- The local `QAFE_FORMS_DEMO` workspace and `QAFE_DEMO_BUILDER` exist; no migration application exists yet. Do not mark US2 behavioral scenarios passed based on the source-contract test.
+- `QAFE_FORMS_CLEAN` application 100 contains the approved local Form 1 slice only. Do not infer that US2-AC-01 through US2-AC-07 or the other Forms journeys passed from `F1-DEMO-01`.
 - Create only isolated, sanitized fixtures under the policy in `tests/fixtures/README.md`. Record identifiers, relationships, and reset procedure before populating them. Use at least zero, one, and multiple matching rows, plus a result set larger than the approved page capacity.
 - Do not use `V_EX01_01_STUDENT` as a source; its `STUDENT_TEST` dependency is absent from the supplied DDL. Do not validate search by changing legacy data.
 

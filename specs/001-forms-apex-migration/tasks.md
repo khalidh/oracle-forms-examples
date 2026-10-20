@@ -70,7 +70,9 @@
 ### Implementation for User Story 2
 
 - [x] T017 [US2] Map confirmed Forms query criteria, result fields, ordering, empty states, and navigation to target journeys in `docs/migration-mapping.md`
-- [ ] T018 [US2] Build the approved APEX search and consultation pages and export the application to `apex/QAFE_MIGRATION.sql`; keep business operations disabled until the authorization gate passes
+- [x] T018 [US2] Build the approved local QAFE_FORM1 read-only consultation slice and export the application to `apex/QAFE_MIGRATION.sql`; keep other business operations denied
+
+T018 covers only the owner-approved local Form 1 slice. `F1-DEMO-01` passed; other US2 journeys and the US2 acceptance checkpoint remain open.
 
 **Checkpoint**: User Story 2 passes when the acceptance record shows all query scenarios and read-only access is restricted to approved roles.
 
@@ -82,12 +84,14 @@
 
 ### Tests for User Story 3
 
-- [ ] T019 [US3] Record create/update/delete cases, generated keys, audit values, constraint failures, and persisted-state checks in `tests/acceptance/US3-crud.md`
+- [x] T019 [US3] Record create/update/delete cases, generated keys, audit values, constraint failures, and persisted-state checks in `tests/acceptance/US3-crud.md`
 
 ### Implementation for User Story 3
 
-- [ ] T020 [US3] Obtain owner sign-off for treating `WHERE 1 = 0` UPDATE/DELETE branches as defects and record the decision and source references in `docs/migration-mapping.md`
-- [ ] T021 [US3] Implement the approved CRUD journeys with verified persistence and transaction outcomes in `apex/QAFE_MIGRATION.sql` only after T020 is approved
+- [x] T020 [US3] Obtain owner sign-off for treating the QAFE_FORM1 `WHERE 1 = 0` UPDATE/DELETE branches as defects and record the decision and source references in `docs/migration-mapping.md`
+- [x] T021 [US3] Implement the approved QAFE_FORM1 CRUD test harness with verified persistence and transaction outcomes in `apex/QAFE_MIGRATION.sql` after T020 approval
+
+T019-T021 are complete for the QAFE_FORM1 test slice only. The one-fixture create/update/delete and duplicate-key rejection passed; the fixture was cleaned up and page 6 excluded from runtime. Injected transaction-failure tests and CRUD work for other Forms remain open.
 
 **Checkpoint**: Do not enable a CRUD action until its authorization is approved and its acceptance case verifies the resulting database state.
 
@@ -101,10 +105,14 @@
 
 - [ ] T022 [US4] Record positive, negative, boundary, and no-partial-write cases for each confirmed validation in `tests/acceptance/US4-validation.md`
 
+The QAFE_FORM1 constraint cases and Form 2-related FIRST_NAME/ZIP source cases are recorded in `tests/acceptance/US4-validation.md`. Form 2 local access and synthetic fixtures are approved; its guarded pages are deployed, but runtime validation is still pending. T022 remains open for Form 3 rules and complete test execution.
+
 ### Implementation for User Story 4
 
 - [ ] T023 [US4] Extend the trigger analysis with Forms timing, error handling, and exact validation source mappings from exports in `docs/trigger-analysis.md`
 - [ ] T024 [US4] Implement approved server-side validations and user-facing error outcomes in `apex/QAFE_MIGRATION.sql` without weakening database constraints
+
+The QAFE_FORM1 trigger/absence inventory and Form 2 validation caller boundaries are recorded in `docs/trigger-analysis.md`. T023 remains open globally for Form 3 and a complete event inventory. T024 remains open for Form 3 rules and Form 2 runtime validation; Form 2 guarded create/update pages are implemented locally, but trigger-message propagation and no-partial-write behavior are unverified.
 
 **Checkpoint**: No validation is considered preserved until its positive and negative cases pass against the isolated target.
 
@@ -116,14 +124,18 @@
 
 ### Tests for User Story 5
 
-- [ ] T025 [US5] Record master-detail, grid, ZIP lookup, cancel, missing-parent, and concurrent-edit cases in `tests/acceptance/US5-related-data.md`
+- [x] T025 [US5] Record source-backed master-detail, grid, ZIP lookup, cancel, missing-parent, and concurrent-edit cases in `tests/acceptance/US5-related-data.md`
 
 ### Implementation for User Story 5
 
-- [ ] T026 [US5] Specify confirmed master-detail, grid, and LOV outcomes and desktop-to-web differences in `docs/migration-mapping.md`
+- [x] T026 [US5] Specify confirmed master-detail, grid, and LOV outcomes and desktop-to-web differences in `docs/migration-mapping.md`
 - [ ] T027 [US5] Implement only the confirmed related-data journeys and selected APEX components in `apex/QAFE_MIGRATION.sql`
 
+T025-T027 cover Form 2 master-detail/ZIP and other related-data journeys; they are not part of the QAFE_FORM1 slice.
+
 **Checkpoint**: User Story 5 passes when relationship integrity, selection/cancel flows, and concurrent-edit outcomes match approved tests.
+
+T025/T026 are complete as source-backed design artifacts. On 2026-10-20 the owner authorized local Form 2 access through `QAFE_FORMS_BUILDER`, with CRUD only for INSTRUCTOR/STUDENT; COURSE/SECTION remain read-only. Runtime create/update/delete passed for isolated synthetic INSTRUCTOR 115 and STUDENT 401; the `FIRST_NAME` null-update trigger rejected the update without changing the row; the ZIP LOV selection persisted as `INSTRUCTOR.ZIP=99999`; all synthetic rows, including ZIPCODE 99999, were removed. Authenticated navigation opened Instructors, Students, Course Overview, and Section Overview. Page 11 now passes COURSE_NO to the filtered Section Overview; the runtime empty-detail case passed for COURSE 454. T027 remains in progress pending a matching SECTION test fixture approval and the remaining cancel/no-result, return-state, and related-detail scenarios. No legacy/production data or network access is authorized.
 
 ## Phase 8: User Story 6 - Accept Incremental Migration Slices (Priority: P2)
 
@@ -133,12 +145,14 @@
 
 ### Tests for User Story 6
 
-- [ ] T028 [US6] Record slice-level source coverage, test results, unresolved findings, and owner acceptance in `tests/acceptance/US6-slice-signoff.md`
+- [x] T028 [US6] Record slice-level source coverage, test results, unresolved findings, and owner acceptance for the QAFE_FORM1 local slice in `tests/acceptance/US6-slice-signoff.md`
+
+T028 acceptance is limited to the local QAFE_FORM1 slice; it does not accept broader US2 coverage, production deployment, ongoing writes, or Forms retirement.
 
 ### Implementation for User Story 6
 
-- [ ] T029 [US6] Build the source-to-rule-to-requirement-to-APEX-behavior-to-test matrix with proof statuses in `docs/traceability-matrix.md`
-- [ ] T030 [US6] Define incremental scope, dependencies, cutover gates, and Forms coexistence risks in `docs/migration-risks.md`
+- [x] T029 [US6] Build the source-to-rule-to-requirement-to-APEX-behavior-to-test matrix with proof statuses in `docs/traceability-matrix.md`
+- [x] T030 [US6] Define incremental scope, dependencies, cutover gates, and Forms coexistence risks in `docs/migration-risks.md`
 
 **Checkpoint**: A slice is not accepted and Forms is not decommissioned while source coverage, security approval, or required regression tests remain incomplete.
 
@@ -146,10 +160,12 @@
 
 **Purpose**: Close operational, accessibility, performance, audit, and recovery requirements across all stories.
 
-- [ ] T031 [P] Define and record browser, keyboard, screen-reader, and responsive acceptance scenarios in `tests/acceptance/platform-quality.md`
+- [x] T031 [P] Define and record browser, keyboard, screen-reader, and responsive acceptance scenarios for the current QAFE_FORM1 slice in `tests/acceptance/platform-quality.md`
 - [ ] T032 [P] Measure representative production-like data volumes and record approved response-time targets in `docs/apex-environment.md`
 - [ ] T033 Document backup, rollback, audit, logging, and recovery procedures for the approved deployment in `docs/migration-risks.md`
-- [ ] T034 Run the approved end-to-end scenarios and update prerequisites, commands, and expected outcomes in `specs/001-forms-apex-migration/quickstart.md`
+- [x] T034 Run the approved QAFE_FORM1 end-to-end scenarios and update prerequisites, commands, and expected outcomes in `specs/001-forms-apex-migration/quickstart.md`
+
+T031 scenarios are defined but platform checks are not yet executed. T034 covers the approved local F1 demo/CRUD slice only; broader US2 scenarios remain open.
 
 ## Dependencies & Execution Order
 

@@ -29,6 +29,10 @@
 | F3-TR-07 | `QAFE_FORM3_fmb.xml`, item HIDESTUDENTCOUNT | `WHEN-BUTTON-PRESSED` | Current visibility | Toggles visibility of STUDENTCOUNT with `GET_ITEM_PROPERTY`/`SET_ITEM_PROPERTY`. | Observed code; test both states and accessibility equivalent. |
 | F3-TR-08 | `QAFE_FORM3_fmb.xml`, item PUSH_BUTTON_CLOSE → program unit GO_BACK_TO_HOME_SCREEN | `WHEN-BUTTON-PRESSED` | Button action | Hides WINDOW2 and navigates to COURSE.COURSE_NO. | Observed code; test unsaved changes and focus after return. |
 
+### QAFE_FORM1 Event and Validation Coverage
+
+The Forms2XML inventory for `QAFE_FORM1` reports three triggers: FormModule `WHEN-NEW-FORM-INSTANCE`, COURSE `PRE-INSERT` (`F1-TR-02`), and COURSE `PRE-UPDATE` (`F1-TR-03`). No COURSE `WHEN-VALIDATE-ITEM`, `WHEN-VALIDATE-RECORD`, `PRE-DELETE`, or FormModule `ON-ERROR` trigger is present in this module export. This is an XML source inventory, not proof of runtime behavior. The COURSE NOT NULL, PK, and prerequisite FK constraints remain enforced by the database; see `tests/acceptance/US4-validation.md` for the mapped cases and proof statuses.
+
 ## Rules from SQL
 
 | ID | Source | Condition | Effect / message | Status / target test |
@@ -44,6 +48,13 @@
 | DB-VW-05 | `V_EX01_01_STUDENT_TRG` | INSERT / UPDATE / DELETE | References STUDENT_TEST, absent from declared table DDL; local load reported invalid view/trigger. | Observed inconsistency; do not map until dependency and caller are identified. |
 
 ## Forms Event Inventory Status
+
+### QAFE_FORM2 Validation Caller Boundaries
+
+- The Forms2XML export lists the INSTRUCTOR ZIP double-click trigger (`F2-TR-04`) that calls `DO_KEY('LIST_VALUES')`; the block exposes STUDENT with DML flags. No Form 2 `WHEN-VALIDATE-ITEM` trigger for `STUDENT.FIRST_NAME` or a Forms trigger invoking `STUDENT_ZIP_WVI`/`STUDENT_POSTQ` was identified in the reviewed trigger inventory.
+- SQL source separately defines `TRIGGER_STUDENT_BEFORE_INSERT` and `TRIGGER_STUDENT_BEFORE_UPDATE` on the base STUDENT table. Both run before DML and reject null FIRST_NAME with error `-20101` and the message recorded in `tests/acceptance/US4-validation.md`. Whether Form 2 submits through these triggers is conditional on the effective block/view binding and runtime path; do not claim the UI behavior until verified.
+- `ADF_EX10_01_TRIGGERS.STUDENT_POSTQ` selects CITY/STATE for a supplied ZIP. `STUDENT_ZIP_WVI` sets a message on missing ZIP and returns; it does not itself raise an exception. The Form 2 LOV maps ZIP only back to `INSTRUCTOR.ZIP`, while the package helpers reference a STUDENT object. Their relationship to Form 2 remains unknown.
+- Form 2 has no approved personal-data read scope or write actor. Keep these rules as test design only; do not expose an APEX page or run the scenarios until the owner approves scope and sanitized fixtures.
 
 Observed exported events are listed above. A complete event inventory still requires checking every event node in each XML, including any events beyond the summarized rows. The original specification’s requested events (WHEN-NEW-ITEM-INSTANCE, WHEN-VALIDATE-RECORD, POST-INSERT, POST-UPDATE, PRE-DELETE, KEY-COMMIT, ON-ERROR, and all others) must be explicitly recorded as present or absent per module from a systematic XML query before this analysis is marked complete.
 

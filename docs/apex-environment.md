@@ -32,14 +32,15 @@ Oracle's APEX 24.2 installation guide lists Database 19c or later and ORDS 23.3 
 | Workspace / builder | `QAFE_FORMS_CLEAN` / `QAFE_FORMS_BUILDER` | Login verified; admin disabled, App Builder only |
 | Schema / tablespace | `STUDENT` / `STUDENT_DATA` | DDL imported; legacy source objects noted below |
 | Migrated records | `STUDENT.COURSE` 454, 455, 456 | Only approved records; all other new schema tables remain empty |
+| APEX application | `QAFE Course Lookup` (100), page 4 `Course Catalog` | Local QAFE_FORM1 read-only slice; authenticated and loopback-only |
 
-Old `ORACLE_FORMS_EXAMPLES`, `forms_examples`, `QAFE_FORMS_DEMO`, its four accounts, and its historical `STUDENT` data remain intact. The old workspace had no APEX applications. No applications or user accounts were migrated. The new `.env.apex` uses the existing `APEX_ADMIN_*` and `APEX_DEMO_*` keys for the clean destination; secret values are not documented.
+Old `ORACLE_FORMS_EXAMPLES`, `forms_examples`, `QAFE_FORMS_DEMO`, its four accounts, and its historical `STUDENT` data remain intact. The old workspace had no APEX applications; no applications or user accounts were copied from it. Application 100 was newly built in the clean workspace. The new `.env.apex` uses the existing `APEX_ADMIN_*` and `APEX_DEMO_*` keys for the clean destination; secret values are not documented.
 
-The legacy import contains three known invalid objects: package body `STUDENT` (`STUDENTOBJ` parse error), view `V_EX01_01_STUDENT` (missing `STUDENT_TEST`), and its trigger. The clean builder login was verified, but no APEX application has yet been created or behavior-tested.
+The legacy import contains three known invalid objects: package body `STUDENT` (`STUDENTOBJ` parse error), view `V_EX01_01_STUDENT` (missing `STUDENT_TEST`), and its trigger. Application 100 page 4 was tested locally: only the approved three COURSE columns and rows appeared, and the default report setting of 10 rows persisted after reload. This does not validate other Forms journeys or production authorization.
 
 ## Environment Gate
 
-The local reference is a non-production candidate. Before migration acceptance or exposure beyond loopback, an owner must approve the target DB/PDB and RU, production authentication and authorization matrix, network boundary/TLS, backups, logging, and test-data policy. The ORDS pool is named `forms_examples`; it is not exposed beyond `127.0.0.1`. The local demo workspace exists; its APEX application has not yet been created.
+The local reference is a non-production candidate. Before migration acceptance or exposure beyond loopback, an owner must approve the target DB/PDB and RU, production authentication and authorization matrix, network boundary/TLS, backups, logging, and test-data policy. The clean ORDS pool is `qafe_clean`; it is bound to `127.0.0.1`. The local QAFE_FORM1 preview exists but is not a production deployment.
 
 On 2026-10-19, ORDS was restarted with the restored image path above and remained bound to `127.0.0.1:8080`. Static asset checks returned 200. No workspace or application was created in this recovery step.
 

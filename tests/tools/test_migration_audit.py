@@ -67,13 +67,29 @@ class AuditToolkitTests(unittest.TestCase):
         self.assertEqual("unknown Forms module", result["error"])
 
     def test_traceability_audit_reports_missing_acceptance_files(self) -> None:
-        result = json.loads(self.toolkit.audit_traceability())
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            docs = root / "docs"
+            docs.mkdir()
+            matrix = docs / "traceability-matrix.md"
+            matrix.write_text(
+                "| Source ID | Source | Behavior | Requirement | APEX | Test record | Proof status |\n"
+                "|---|---|---|---|---|---|---|\n"
+                "| DB-TR-03 | SQL trigger | Rejects invalid data | FR-007 | Validation | "
+                "`tests/acceptance/missing.md` | Unknown |\n",
+                encoding="utf-8",
+            )
 
-        self.assertGreater(result["total_entries"], 0)
-        self.assertEqual(result["total_entries"], len(result["test_records"]))
-        self.assertTrue(all("test_exists" in entry for entry in result["test_records"]))
-        self.assertTrue(result["missing_test_records"])
-        self.assertTrue(all(not entry["test_exists"] for entry in result["missing_test_records"]))
+            result = json.loads(AuditToolkit(root).audit_traceability())
+
+        self.assertEqual(1, result["total_entries"])
+        self.assertEqual(0, result["existing_test_records"])
+        self.assertEqual(1, len(result["missing_test_records"]))
+        self.assertEqual(
+            "tests/acceptance/missing.md",
+            result["missing_test_records"][0]["test_record"],
+        )
+        self.assertFalse(result["missing_test_records"][0]["test_exists"])
 
     def test_open_items_include_recorded_blockers(self) -> None:
         result = json.loads(self.toolkit.list_open_items())

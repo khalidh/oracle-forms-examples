@@ -1,6 +1,6 @@
 # Migration Discovery and Validation Quickstart
 
-This guide prepares read-only discovery and test design. It does not install APEX/ORDS, convert or overwrite Forms sources, create an APEX application, or modify the legacy schema/data.
+This guide records read-only discovery and the verified local QAFE_FORM1 preview. It does not install APEX/ORDS, convert or overwrite Forms sources, or modify the legacy schema/data.
 
 ## Prerequisites
 
@@ -44,4 +44,13 @@ For every case, record preconditions, action, expected screen/result, expected p
 
 ## APEX environment gate
 
-The reference PDB currently reports APEX 24.2.0 VALID and Database 19.3.0.0.0. Oracle documents APEX 24.2 for Database 19c or later and requires ORDS 23.3 or later. ORDS was not found under the local `C:\Oracle` tree; confirm the approved web tier, ORDS version, XML DB, memory settings, browser baseline, and deployment topology before any APEX web test. No application import/build is part of this quickstart.
+The local clean PDB reports APEX 24.2.0 VALID and Database 19.3.0.0.0; ORDS 26.3 is running on loopback pool `qafe_clean`. This is a non-production preview. Browser support, production authentication/authorization, data volumes, deployment, backup, and recovery remain open gates.
+
+## Run the QAFE_FORM1 Preview
+
+1. Start the documented loopback-only ORDS command in `docs/resume.md` if port 8080 is not already listening.
+2. Sign in to workspace `QAFE_FORMS_CLEAN` at `http://127.0.0.1:8080/ords/qafe_clean/apex` using the provisioned Builder account; enter the password directly in the browser.
+3. Open **QAFE Course Lookup**, page **Course Catalog**, at `http://127.0.0.1:8080/ords/qafe_clean/r/qafe_forms_clean/qafe-course-lookup/course-catalog`.
+4. Expected local result: only `COURSE_NO`, `DESCRIPTION`, and `COST`; rows 454/455/456 in ascending order; default report page size 10; no form or write process on this page.
+
+The one-time CRUD verification and its persisted-state checks are recorded in `tests/acceptance/US3-crud.md`. The test fixture was deleted. Page 6 is excluded from runtime and must not be re-enabled for ordinary users. Do not repeat write tests without fresh owner approval. Broader US2, validation, accessibility, production-scale performance, and cutover scenarios remain incomplete.

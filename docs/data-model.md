@@ -47,5 +47,5 @@ Packages in the script: `ADF_EX10_01_TRIGGERS` (POST-QUERY, ZIP validation, EXIT
 | Form 3 | SECTION | SECTION | true/true/true | COURSE_NO validation and query on block entry. |
 | Form 3 | SUB_BLOCK | No query source shown | XML flags true/true/true | Contains a close button; database-block semantics are unverified. |
 
-Forms block flags do not prove successful persistence. SQL view triggers for Form 1 COURSE and Form 2 INSTRUCTOR/STUDENT contain no-op UPDATE/DELETE predicates (`WHERE 1 = 0`). The migration target is CRUD per the owner decision; resolve this source discrepancy before implementation.
+Forms block flags do not prove successful persistence. SQL view triggers for Form 1 COURSE and Form 2 INSTRUCTOR/STUDENT contain no-op UPDATE/DELETE predicates (`WHERE 1 = 0`). For the owner-approved local Form 2 target, pages 8/10 use guarded base-table DML; the legacy triggers remain unchanged. Runtime persistence and rollback still require acceptance testing.
 

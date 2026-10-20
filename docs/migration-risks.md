@@ -4,7 +4,7 @@
 |---|---|---|---|---|---|
 | R-01 | FMB behavior may still be incomplete or misunderstood. | Three Forms2XML exports exist, but parsing/inventory and runtime review are in progress. | Lost triggers, navigation, hidden items, library calls, or messages. | Review all nodes and validate key paths in Builder/runtime; do not infer undocumented behavior. | Open |
 | R-02 | Local target has Database 19.3 and APEX 24.2; ORDS was not found. | `V$VERSION`, `CDB_REGISTRY`, local file/service search. | Cannot validate a deployed web app until ORDS and target topology are approved. | Identify/provision owner-approved non-production ORDS 23.3+ and verify patches, XML DB, memory, URL, and network. | Blocking for web deployment |
-| R-03 | Example SQL uses views with UPDATE/DELETE no-op triggers despite README CRUD claims. | `V_QAFE_FORM1_COURSE_TRG`, `V_QAFE_FORM2_INSTRUCTOR_TRG`, `V_QAFE_FORM2_STUDENT_TRG` use `WHERE 1 = 0`. | Data loss or false success if migrated literally; behavior divergence if corrected without owner review. | Owner approved CRUD as target; verify exact legacy behavior and tests before implementing corrected DML. | Blocking before CRUD build |
+| R-03 | Example SQL uses views with UPDATE/DELETE no-op triggers despite README CRUD claims. | `V_QAFE_FORM1_COURSE_TRG`, `V_QAFE_FORM2_INSTRUCTOR_TRG`, `V_QAFE_FORM2_STUDENT_TRG` use `WHERE 1 = 0`. | Data loss or false success if migrated literally; behavior divergence if corrected without owner review. | Owner confirmed on 2026-10-20 that the Form 1 branches are defects; T020 is recorded in `docs/migration-mapping.md`. The Builder-only one-row CRUD harness passed create/update/delete and was disabled after cleanup. Obtain separate decisions for Forms 2; no ongoing Form 1 writes are enabled. | Form 1 slice verified; other Forms remain open |
 | R-04 | `V_EX01_01_STUDENT` references missing `STUDENT_TEST`. | View and trigger source; local schema load reported invalid object. | Missing or broken legacy journey and unknown storage dependency. | Find owning module/table/package and source environment; do not migrate as if it were `STUDENT`. | Open |
 | R-05 | `V_EX10_01_STUDENT` has virtual NULL columns that are inserted by the dump. | View DDL and local ORA-01733. | Incomplete or invalid seed data; unclear expected UI fields. | Treat DDL/data behavior separately; establish expected fields and seed from authoritative data owner. | Open |
 | R-06 | A Form 3 SECTION validation fetches into COURSE.COURSE_NO. | `QAFE_FORM3_fmb.xml`, SECTION.COURSE_NO WHEN-VALIDATE-ITEM. | Wrong item mutation or confusing validation result. | Confirm intended target with owner; test valid and missing course before selecting an APEX rule. | Blocking for Form 3 validation |
@@ -17,3 +17,11 @@
 | R-13 | PS_TXN BLOB usage and external library/menu calls are unknown. | Table exists; no supporting PLL/PLX/MMB/MMX/OLB artifacts found in the repo. | Functional dependency or binary payload may be omitted. | Search authoritative Forms runtime/deployment sources and owner; classify retain/replace/retire. | Open |
 
 Do not decommission Forms or enable APEX writes until blocking risks have owners, mitigations, and passing acceptance evidence.
+
+## QAFE_FORM1 Incremental Slice
+
+- Scope: application 100 page 4 read-only Course Catalog plus the temporary page 6 CRUD harness; no other Forms journey is included.
+- Dependencies: APEX 24.2/ORDS 26.3 loopback pool `qafe_clean`, workspace `QAFE_FORMS_CLEAN`, schema `STUDENT`, `COURSE_NO_SEQ`, and the COURSE constraints recorded in `docs/data-model.md`.
+- Cutover gate: none. Keep Forms available, retain page 4 as read-only, and keep page 6 `Commented Out` / `No URL Access` after the one-time test.
+- Coexistence: legacy FMB and source PDB remain untouched. Do not copy preview fixture data to the legacy PDB or production.
+- Local rollback: re-import the reviewed `apex/QAFE_MIGRATION.sql` export into the isolated workspace if the APEX definition must be restored. This export is not a database backup; no database rollback/backup was performed.

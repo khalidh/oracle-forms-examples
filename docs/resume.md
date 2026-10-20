@@ -24,12 +24,51 @@
 - Old-workspace inventory found zero APEX applications and four accounts (including three diagnostic accounts). No old accounts or applications were copied. The old `STUDENT` schema had 2,142 rows across its 11 source tables; only approved course rows 454, 455, and 456 were copied to the new PDB. All other historical rows, including student/contact, enrollment, grade, and ZIP data, remain only in the untouched old PDB. The new schema currently has 3 `COURSE` rows and zero rows in the other tables.
 - `reset_apex_admin.ps1`, `reset_apex_demo_builder.ps1`, and `create_apex_demo_workspace.ps1` now target the clean PDB/workspace. `provision_apex_script_admin.ps1` and its SQL file remain legacy diagnostics for the old workspace; do not use them for the clean setup.
 
+## QAFE_FORM1 Implementation Progress — 2026-10-20
+
+- In response to the owner's request to continue despite open checklist items, built the first approved local migration slice in the clean workspace. Existing application 100 `QAFE Course Lookup` was retained; page 4 `Course Catalog` was added.
+- Page 4 is an Interactive Report using `select course_no, description, cost from course order by course_no`. It exposes only the approved three columns, has no form page or DML process, requires APEX authentication, and runs through loopback-only ORDS pool `qafe_clean`.
+- `F1-DEMO-01` passed on 2026-10-20: rows 454/455/456 displayed as English Grammar/30, Mathematics/20, and Dutch Grammar/40. Removed a transient session filter; saved the 10 rows-per-page choice as the Primary Default report for all users and verified it remained selected after reload. No write action was invoked.
+- Application export is `apex/QAFE_MIGRATION.sql`; it was refreshed after the CRUD test and contains the secured, disabled page 6 harness. Supporting object definitions and original IDs were excluded.
+- T018 is complete for this approved local QAFE_FORM1 slice only. Other US2 journeys, production authorization, full Forms behavioral equivalence, and the five unchecked specification checklist items remain open. Do not treat the broader US2 checkpoint as passed.
+- ORDS is currently running on `127.0.0.1:8080` against the `qafe_clean` pool. Do not read `.env.apex` or `.env.qafe-clean`, and do not grant SYS inheritance privileges to export APEX packages.
+
+## QAFE_FORM1 CRUD T021 Progress — 2026-10-20
+
+- Owner approved a one-time CRUD test for `QAFE_FORMS_BUILDER` using only the marked disposable `COURSE` fixture in `QAFE_CLEAN`.
+- Added page 6 `Course CRUD Test Harness` with authorization scheme `QAFE CRUD TEST BUILDER ONLY`, a region filter for the exact marker/creator, and custom PL/SQL that generates `COURSE_NO`, sets audit fields, and applies UPDATE/DELETE only to the marker row with a one-row count guard.
+- Test results: created COURSE 457 at cost 15 with generated key and audit; updated cost to 25 while preserving creation audit and refreshing modification audit; deleted the row. SQL read-back confirmed zero remaining fixture rows and unchanged courses 454/455/456. COURSE_NO sequence value 457 was consumed.
+- The duplicate primary-key case passed: `CRSE_PK` rejected a test insert using key 454; rollback left no test marker and COURSE 454 unchanged. Injected transaction-failure cases were not run. No ongoing write authorization was approved.
+- `tests/acceptance/US4-validation.md` records the COURSE constraint subset; `tests/acceptance/platform-quality.md` defines current F1 keyboard, screen-reader, responsive, and browser scenarios. These platform scenarios remain unexecuted. `tests/acceptance/US6-slice-signoff.md` is prepared with owner acceptance pending.
+- T028/T029/T030/T031/T034 are complete for the current QAFE_FORM1 local slice. T022 and T023 remain open globally for Form 3 validation and full event inventory; the Form 2 SQL validation/caller limits are documented. T024 and T027 are blocked for Form 2 by the owner’s no-data-access decision; T025/T026 are documented. T032/T033 require representative deployment data/approval.
+- Page 6 was restored to `Commented Out` and `No URL Access`; `P6_COURSE_NO` checksum protection was restored. Direct runtime request returned `APEX.PAGE.NOT_FOUND`. Page 4 remains read-only.
+- Refreshed export SHA-256: `3DBFB169928D85B841C4D66928B912664CBA3FAEA4A117F7A18431DDD0D16B20`.
+
+## QAFE_FORM2 Porting Progress — 2026-10-20
+
+- Owner authorized local Form 2 access to `QAFE_FORMS_BUILDER` in `QAFE_CLEAN`, including instructor/student fields and ongoing CRUD for INSTRUCTOR/STUDENT. COURSE/SECTION remain read-only; ZIPCODE is read-only for the LOV. Legacy and production data/network access remain prohibited.
+- Application 100 pages 7-10 remain active with `QAFE_FORMS_BUILDER_ONLY` and checksum protection. Runtime create/update/delete passed on disposable INSTRUCTOR 115 and STUDENT 401; updates preserved creation audit and advanced modification audit. Both records were deleted, and the test tables are empty.
+- Pages 11/13 are read-only COURSE/SECTION reports. Each Course Overview Description links to Section Overview with `P13_COURSE_NO`; the page filters `SECTION.COURSE_NO` and submits the item for refresh. Runtime `COURSE_NO=454` reached the expected empty state; positive matching details remain untested because SECTION is read-only and empty.
+- The P8 ZIP LOV displayed `99999 - TESTVILLE, ZZ`; saving instructor 115 persisted `ZIP=99999`, confirmed by SQL. The synthetic INSTRUCTOR, STUDENT, and ZIPCODE rows were removed; INSTRUCTOR=0, STUDENT=0, SECTION=0, COURSE=3, and the marked ZIP=0 after cleanup.
+- The official APEX export was refreshed from the Builder UI to `apex/QAFE_MIGRATION.sql`; SHA-256 `DE517C8C9F36082870F813A6685E6D37DBFC0E9E3E43C319EC5874E8DB74417F`. The export has not been imported elsewhere.
+- The authenticated runtime session was confirmed as `QAFE_FORMS_BUILDER`. Student page 10 rejected a blank FIRST_NAME with `ORA-20101`; SQL read-back confirmed the original row and audit remained unchanged. No credentials were read or repeated.
+- T025/T026 are complete. T027 remains in progress: runtime CRUD, ZIP selection/persistence, validation rejection, navigation, filter configuration, and the COURSE 454 empty-detail case are evidenced; a positive matching SECTION case and other related-data journeys remain open pending separate fixture approval. T022/T024 also remain open for broader validation and Form3 coverage.
+
+## Resume Next Session — 2026-10-21
+
+- Form 2 master-detail changes are saved in application 100: page 11 Description links set `P13_COURSE_NO` from `#COURSE_NO#` and clear page 13; page 13 has a protected Hidden item with per-request storage and filters `COURSE_NO = :P13_COURSE_NO`, submitting that item for report refresh.
+- Runtime check passed for existing COURSE 454: the generated link passed `p13_course_no=454` and Section Overview showed `No data found.` No COURSE, SECTION, INSTRUCTOR, STUDENT, or ZIPCODE fixtures remain; counts are COURSE=3, SECTION=0, INSTRUCTOR=0, STUDENT=0, ZIPCODE=0.
+- `apex/QAFE_MIGRATION.sql` was refreshed from the APEX Builder UI; SHA-256 is `DE517C8C9F36082870F813A6685E6D37DBFC0E9E3E43C319EC5874E8DB74417F`. It includes the page 11 link and page 13 filter. The export was not imported elsewhere.
+- Browser state at pause: runtime session is on Section Overview for COURSE 454; Builder session is on Export Application for app 100. Sessions may expire; never read or request passwords in chat.
+- First next step: ask the owner before creating a disposable SECTION fixture. Existing authorization keeps COURSE/SECTION read-only. If approved, create one minimal section linked to an existing approved course in `QAFE_CLEAN`, verify only that course's detail appears, then delete the fixture and confirm zero remaining rows. Without approval, preserve read-only behavior and leave positive-detail acceptance open.
+- Remaining T027 gates include ZIP no-result/stale-value behavior, the null-FIRST_NAME insert case, return/unsaved-state navigation, and the positive related-detail case. No legacy PDB, production access, or network exposure is authorized.
+
 **Checkpoint updated**: 2026-10-19 after the latest workspace login attempt. APEX reports “Password reset. Email sent.”, but the message is only queued: no SMTP service listens on localhost ports 25/465/587, the global APEX mail queue contains five messages with zero send attempts and no recorded errors, and the APEX mail log has no recent entries. The random-generated Builder password is unavailable. The owner performed a Provided reset, then the real browser login with the latest credential again returned `Invalid Login Credentials` and a 10-second throttle notice. The private API also returned status 1; the public API call from SYS was invalidated by `ORA-06598`, so it is not used as evidence. T017 remains complete; ORDS is loopback-only and routes return HTTP 200. Workspace login is unresolved; no APEX application or behavioral test exists yet. The ADMIN browser session has expired and its login form is ready with username `ADMIN` filled; no further password reset or login attempt was made.
 
 ## Completed and Saved
 
 - Goal: migrate the three QAFE Oracle Forms examples to Oracle APEX using the Spec Kit plan in `specs/001-forms-apex-migration/`.
-- T001 through T017 are marked complete (17 of 34 tasks). T016 records test scenarios; it does not mean US2 behavior tests passed. T017 maps the QAFE_FORM1 COURSE query from source evidence.
+- T001 through T021 are marked complete for the current QAFE_FORM1 slice (21 of 34 tasks). T016 records broader US2 scenarios; it does not mean they passed. T021 includes only the guarded local harness and one-fixture run; the harness is disabled after testing.
 - `F1-SRC-01` passes as a source-contract test: QAFE_FORM1 query source is `course`; block/item query flags are enabled; WHERE and ORDER BY are empty; startup runs `execute_query()`; COURSE_NO ColumnName is empty. This does not validate Forms runtime or APEX behavior.
 - Local demo approval: authenticated users of the local demo workspace may read only `COURSE_NO`, `DESCRIPTION`, and `COST`, sorted by `COURSE_NO` ascending, 10 rows per page, using local sample course rows 454/455/456. All writes and non-loopback access remain denied; this is not production approval.
 - Forms2XML exports and provenance are in `docs/forms-exports/`. Original FMB hashes were unchanged during export.
@@ -45,7 +84,7 @@
 - After the Administration Services user update, one workspace login returned `Invalid Login Credentials` and the UI requested a 5-second wait. A read-only check afterward showed `QAFE_DEMO_BUILDER` remains unlocked with zero failed attempts, App Builder/SQL Workshop/Team Development = Y/N/N, change-on-first-use = N, and first-password-use = Y. No additional login attempt or password reset has been made. The stored credential itself cannot be verified from these metadata.
 - The owner confirmed the password entered at workspace login was the same new value entered in both admin password fields. A one-shot SQL*Plus call to `wwv_flow_fnd_user_int.authenticate` using a hidden terminal prompt returned `AUTH_STATUS=1`; the password was not displayed or persisted by the test. Do not retry login. The dedicated admin Reset action was not reached; the admin session now needs sign-in again before using the UI reset route.
 - The owner changed the Builder email and used `Randomly Generated`; APEX queued the notification, but it was not delivered because no local SMTP service listens. The owner then performed a **Provided** reset; the success message appeared. The latest browser login with the resulting credential returned `Invalid Login Credentials` and a 10-second throttle notice. The private `WWV_FLOW_FND_USER_INT.AUTHENTICATE` check returned status 1; the access log records result 8. APEX package source defines status 1 as an invalid username/password combination; 0 is success, 2 locked, 3 change required, and 9 delayed. The separate documented `APEX_WORKSPACE_USER.AUTHENTICATE` call from SYS failed with `ORA-06598` (insufficient `INHERIT PRIVILEGES`), so no privilege grant was made and that call is not a credential verdict. Both test accounts remain in the verified state: Builder unlocked with Y/N/N privileges; diagnostic account locked with Y/N/N. The ADMIN session expired before the proposed next controlled reset. Do not attempt another login during the throttle window.
-- No APEX application has been created. `F1-DEMO-01` remains unexecuted.
+- At this checkpoint no APEX application had been created. This status was superseded on 2026-10-20 by the `QAFE_FORM1 Implementation Progress` section above; `F1-DEMO-01` has since passed for the local slice only.
 
 ## Local Runtime
 
@@ -73,12 +112,12 @@ ORDS was stopped when this session resumed and has since been restarted in the c
 & 'C:\Oracle\ORDS\dist\bin\ords.exe' --config 'C:\Oracle\ORDS\config' serve --port 8080 --ip-addresses 127.0.0.1 --apex-images 'C:\Oracle\ORDS\apex-media\apex_24.2_en_restored_tar\apex\images'
 ```
 
-## Next at T018
+## Next After T021
 
-1. The checkpoint, tasks, migration mapping, US2 acceptance record, and security matrix have been reviewed for this resume.
-2. The owner approved the limited local demo actor, columns, sample rows, ordering, page size, and no-write policy as recorded in the acceptance/security documents. Do not expand beyond that approval.
-3. The random-generated notification is queued but cannot be delivered because no local SMTP service is listening. The latest Provided-reset credential was rejected in the browser too; stop further attempts until the throttle clears. After reauthenticating as ADMIN, if continuing, do one final controlled reset with a simple ASCII-only temporary value entered directly by the owner in both fields, then one browser test. Do not use the private API as definitive evidence or grant SYS inheritance privileges. Never share secrets or read `.env.apex` / `.env.apex.pending`.
-4. Separately resolve the unexpected `ALLOW_TEAM_DEVELOPMENT_YN=Y` flag on `QAFE_DEMO_BUILDER`; do not use the elevated `QAFE_DEMO_SCRIPT_ADMIN` account for the demo. Only after successful least-privilege workspace sign-in, create the demo application, implement the approved read-only Form 1 list, and execute `F1-DEMO-01`. Keep production access and CRUD denied.
+1. Keep `QAFE_CLEAN` / `QAFE_FORMS_CLEAN` as the local preview target; do not use the old `ORACLE_FORMS_EXAMPLES` workspace or its unverified builder credentials.
+2. Continue with any additional US2 journeys only after their actor, row/column scope, and test data are explicitly approved. `F1-DEMO-01` does not pass the broader US2 acceptance checkpoint.
+3. Preserve the default-deny policy for production, ongoing writes, and network exposure. Do not grant SYS inheritance privileges to export APEX packages; the official UI export is `apex/QAFE_MIGRATION.sql`.
+4. Injected transaction-failure CRUD tests remain open. The specification checklist still has five unchecked quality/readiness items; keep them open until reviewed rather than changing their markers during implementation.
 
 ## Gates and Known Issues
 
