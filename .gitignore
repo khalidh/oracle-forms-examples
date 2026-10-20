@@ -1,0 +1,5 @@
+.env
+/.env.apex
+/.env.apex.pending
+/.env.apex.previous
+/.env.qafe-clean
