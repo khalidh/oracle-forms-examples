@@ -237,9 +237,12 @@ class AuditToolkit:
 
         traceability_path = self.root / "docs" / "traceability-matrix.md"
         unverified: list[dict[str, str]] = []
-        review_terms = ("unknown", "unverified", "not tested", "open", "needs owner")
+        review_terms = re.compile(
+            r"\b(?:unknown|unverified|not tested|open|needs owner)\b",
+            re.IGNORECASE,
+        )
         for _, cells in _table_rows(traceability_path):
-            if len(cells) >= 7 and any(term in cells[6].casefold() for term in review_terms):
+            if len(cells) >= 7 and review_terms.search(cells[6]):
                 unverified.append({"source_id": cells[0], "proof_status": cells[6]})
 
         return _json_result({"open_risks": open_risks, "unverified_traceability": unverified})
