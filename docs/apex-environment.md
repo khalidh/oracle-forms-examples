@@ -16,7 +16,7 @@
 | ORDS REST configuration | `APEX_PUBLIC_USER` proxy target unlocked in this PDB | Required after ORDS returned ORA-28000; do not unlock or alter corresponding users in other PDBs. |
 | Oracle XML DB | 19.0.0.0.0, `VALID` | `DBA_REGISTRY` in the dedicated PDB. |
 | Memory / workarea | SGA_TARGET 5033164800; PGA_AGGREGATE_TARGET 1677721600; WORKAREA_SIZE_POLICY AUTO | Local initialization; satisfies APEX 24.2 documented memory minimums. |
-| Browser / volume / performance | Not specified | Owner confirmation and representative baseline required. |
+| Browser / volume / performance | Not specified; clean preview has 3 COURSE rows and zero INSTRUCTOR/STUDENT/SECTION/ZIPCODE/ENROLLMENT rows (2026-10-21) | Owner confirmation and representative, approved baseline required; local sample data is not production-like. |
 
 Oracle's APEX 24.2 installation guide lists Database 19c or later and ORDS 23.3 or later. APEX 26.2 is not selected: its guide requires Database 19c RU 19.18 or later, while this local instance reports 19.3.
 
@@ -31,8 +31,8 @@ Oracle's APEX 24.2 installation guide lists Database 19c or later and ORDS 23.3 
 | ORDS / pool | 26.3.0.r2721811 / `qafe_clean` | `VALID`; gateway proxied; loopback routes return HTTP 200 |
 | Workspace / builder | `QAFE_FORMS_CLEAN` / `QAFE_FORMS_BUILDER` | Login verified; admin disabled, App Builder only |
 | Schema / tablespace | `STUDENT` / `STUDENT_DATA` | DDL imported; legacy source objects noted below |
-| Migrated records | `STUDENT.COURSE` 454, 455, 456 | Only approved records; all other new schema tables remain empty |
-| APEX application | `QAFE Course Lookup` (100), page 4 `Course Catalog` | Local QAFE_FORM1 read-only slice; authenticated and loopback-only |
+| Preview records (2026-10-21) | `COURSE` 454-456; 257 `STUDENT`; 10 `INSTRUCTOR`; 146 `ZIPCODE`; 62 `SECTION` | Owner-approved one-time source copy to `QAFE_CLEAN`; source PDB unchanged. 52 SECTION rows reference COURSE numbers absent from the three-row preview. ENROLLMENT and remaining tables are empty. |
+| APEX application | `QAFE Course Lookup` (100), pages 4 and 7-14 | Page 4 is the QAFE_FORM1 read-only slice; pages 7-13 are Builder-only Form 2 candidate journeys with partial acceptance; temporary Form 3 harness page 14 is commented out and inaccessible by URL. Authenticated and loopback-only. |
 
 Old `ORACLE_FORMS_EXAMPLES`, `forms_examples`, `QAFE_FORMS_DEMO`, its four accounts, and its historical `STUDENT` data remain intact. The old workspace had no APEX applications; no applications or user accounts were copied from it. Application 100 was newly built in the clean workspace. The new `.env.apex` uses the existing `APEX_ADMIN_*` and `APEX_DEMO_*` keys for the clean destination; secret values are not documented.
 

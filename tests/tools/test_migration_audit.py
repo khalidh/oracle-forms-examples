@@ -42,7 +42,7 @@ class AuditToolkitTests(unittest.TestCase):
         result = json.loads(self.toolkit.get_traceability("F3-TR-03"))
 
         self.assertEqual("F3-TR-03", result["source_id"])
-        self.assertIn("Observed XML", result["row"][-1])
+        self.assertIn("PASS in temporary harness", result["row"][-1])
         self.assertGreater(result["line"], 0)
 
     def test_form_inspection_returns_structured_qafe_form1_query_facts(self) -> None:
@@ -97,6 +97,34 @@ class AuditToolkitTests(unittest.TestCase):
 
         self.assertIn("R-08", risk_ids)
         self.assertTrue(result["unverified_traceability"])
+
+    def test_open_items_match_review_terms_as_words(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            docs = root / "docs"
+            docs.mkdir()
+            (docs / "migration-risks.md").write_text(
+                "| ID | Risk | Evidence | Impact | Mitigation | Status |\n"
+                "|---|---|---|---|---|---|\n"
+                "| R-01 | Example | Source | Low | None | Resolved |\n",
+                encoding="utf-8",
+            )
+            (docs / "traceability-matrix.md").write_text(
+                "| Source ID | Source | Behavior | Requirement | APEX | Test | Proof status |\n"
+                "|---|---|---|---|---|---|---|\n"
+                "| F2-TR-05 | Forms | Navigation | FR-004 | Page 11 | tests.md | "
+                "PASS: runtime navigation opened page 11 |\n"
+                "| F2-TR-07 | Forms | Return | FR-004 | Back | tests.md | "
+                "Open: owner review required |\n",
+                encoding="utf-8",
+            )
+
+            result = json.loads(AuditToolkit(root).list_open_items())
+
+        self.assertEqual(
+            ["F2-TR-07"],
+            [entry["source_id"] for entry in result["unverified_traceability"]],
+        )
 
     def test_agent_adapter_registers_only_read_only_tools(self) -> None:
         fake_framework = types.ModuleType("agent_framework")

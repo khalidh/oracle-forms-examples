@@ -29,6 +29,10 @@
 | F3-TR-07 | `QAFE_FORM3_fmb.xml`, item HIDESTUDENTCOUNT | `WHEN-BUTTON-PRESSED` | Current visibility | Toggles visibility of STUDENTCOUNT with `GET_ITEM_PROPERTY`/`SET_ITEM_PROPERTY`. | Observed code; test both states and accessibility equivalent. |
 | F3-TR-08 | `QAFE_FORM3_fmb.xml`, item PUSH_BUTTON_CLOSE → program unit GO_BACK_TO_HOME_SCREEN | `WHEN-BUTTON-PRESSED` | Button action | Hides WINDOW2 and navigates to COURSE.COURSE_NO. | Observed code; test unsaved changes and focus after return. |
 
+### Forms2XML Trigger Inventory Check
+
+A structural count of the exported XML confirms 3 triggers in QAFE_FORM1, 11 in QAFE_FORM2, and 8 in QAFE_FORM3. Each exported trigger is represented by the corresponding F1-TR, F2-TR, or F3-TR row above. This verifies inventory coverage only; it does not establish Forms runtime timing or resolve the open Form 3 decisions R-06/R-07.
+
 ### QAFE_FORM1 Event and Validation Coverage
 
 The Forms2XML inventory for `QAFE_FORM1` reports three triggers: FormModule `WHEN-NEW-FORM-INSTANCE`, COURSE `PRE-INSERT` (`F1-TR-02`), and COURSE `PRE-UPDATE` (`F1-TR-03`). No COURSE `WHEN-VALIDATE-ITEM`, `WHEN-VALIDATE-RECORD`, `PRE-DELETE`, or FormModule `ON-ERROR` trigger is present in this module export. This is an XML source inventory, not proof of runtime behavior. The COURSE NOT NULL, PK, and prerequisite FK constraints remain enforced by the database; see `tests/acceptance/US4-validation.md` for the mapped cases and proof statuses.

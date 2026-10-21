@@ -33,15 +33,16 @@ prompt APPLICATION 100 - QAFE Course Lookup
 -- Application Export:
 --   Application:     100
 --   Name:            QAFE Course Lookup
+--   Date and Time:   13:03 Wednesday October 21, 2026
 --   Exported By:     QAFE_FORMS_BUILDER
 --   Flashback:       0
 --   Export Type:     Application Export
---     Pages:                     12
---       Items:                   36
---       Processes:               12
---       Regions:                 21
---       Buttons:                 16
---       Dynamic Actions:          4
+--     Pages:                     13
+--       Items:                   41
+--       Processes:               13
+--       Regions:                 22
+--       Buttons:                 20
+--       Dynamic Actions:          5
 --     Shared Components:
 --       Logic:
 --         Build Options:          1
@@ -60,7 +61,7 @@ prompt APPLICATION 100 - QAFE Course Lookup
 --       Globalization:
 --       Reports:
 --       E-Mail:
---     Supporting Objects:  Excluded
+--     Supporting Objects:  Included
 --   Version:         24.2.0
 --   Instance ID:     743390503535881
 --
@@ -107,7 +108,7 @@ wwv_imp_workspace.create_flow(
 ,p_substitution_value_01=>'QAFE Course Lookup'
 ,p_file_prefix => nvl(wwv_flow_application_install.get_static_app_file_prefix,'')
 ,p_files_version=>6
-,p_version_scn=>5596957
+,p_version_scn=>5958869
 ,p_print_server_type=>'NATIVE'
 ,p_file_storage=>'DB'
 ,p_is_pwa=>'Y'
@@ -1925,7 +1926,7 @@ wwv_flow_imp_page.create_page_plug(
 ,p_plug_display_sequence=>10
 ,p_query_type=>'TABLE'
 ,p_query_table=>'INSTRUCTOR'
-,p_query_where=>'created_by = :APP_USER'
+,p_query_where=>'1 = 1'
 ,p_include_rowid_column=>false
 ,p_plug_source_type=>'NATIVE_IR'
 ,p_prn_page_header=>'Instructors'
@@ -2564,10 +2565,9 @@ wwv_flow_imp_page.create_page_process(
 '           phone = :P8_PHONE,',
 '           modified_by = :APP_USER,',
 '           modified_date = l_now',
-'     WHERE instructor_id = TO_NUMBER(:P8_INSTRUCTOR_ID)',
-'       AND created_by = :APP_USER;',
+'     WHERE instructor_id = TO_NUMBER(:P8_INSTRUCTOR_ID);',
 '    IF SQL%ROWCOUNT <> 1 THEN',
-'      raise_application_error(-20092, ''Only a local Builder-owned instructor can be updated.'');',
+'      raise_application_error(-20092, ''Instructor not found or could not be updated.'');',
 '    END IF;',
 '  ELSIF :REQUEST = ''DELETE'' THEN',
 '    SELECT COUNT(*) INTO l_section_count',
@@ -2577,10 +2577,9 @@ wwv_flow_imp_page.create_page_process(
 '      raise_application_error(-20093, ''Cannot delete an instructor referenced by a section.'');',
 '    END IF;',
 '    DELETE FROM instructor',
-'     WHERE instructor_id = TO_NUMBER(:P8_INSTRUCTOR_ID)',
-'       AND created_by = :APP_USER;',
+'     WHERE instructor_id = TO_NUMBER(:P8_INSTRUCTOR_ID);',
 '    IF SQL%ROWCOUNT <> 1 THEN',
-'      raise_application_error(-20094, ''Only a local Builder-owned instructor can be deleted.'');',
+'      raise_application_error(-20094, ''Instructor not found or could not be deleted.'');',
 '    END IF;',
 '  END IF;',
 'END;'))
@@ -2634,7 +2633,7 @@ wwv_flow_imp_page.create_page_plug(
 ,p_plug_display_sequence=>10
 ,p_query_type=>'TABLE'
 ,p_query_table=>'STUDENT'
-,p_query_where=>'created_by = :APP_USER'
+,p_query_where=>'1 = 1'
 ,p_include_rowid_column=>false
 ,p_plug_source_type=>'NATIVE_IR'
 ,p_prn_page_header=>'Students'
@@ -3319,72 +3318,56 @@ wwv_flow_imp_page.create_page_process(
 ,p_process_sql_clob=>wwv_flow_string.join(wwv_flow_t_varchar2(
 'DECLARE',
 '  l_now DATE := SYSDATE;',
-'    l_enrollment_count PLS_INTEGER;',
-'    BEGIN',
-'      IF :APP_USER <> ''QAFE_FORMS_BUILDER'' THEN',
-'          raise_application_error(-20095, ''Only QAFE_FORMS_BUILDER may maintain local Form 2 data.'');',
-'            END IF;',
+'  l_enrollment_count PLS_INTEGER;',
+'BEGIN',
+'  IF :APP_USER <> ''QAFE_FORMS_BUILDER'' THEN',
+'    raise_application_error(-20095, ''Only QAFE_FORMS_BUILDER may maintain local Form 2 data.'');',
+'  END IF;',
 '',
-'              IF :REQUEST = ''CREATE'' THEN',
-'                  :P10_STUDENT_ID := student_id_seq.NEXTVAL;',
-'                      :P10_CREATED_BY := :APP_USER;',
-'                          :P10_CREATED_DATE := l_now;',
-'                              :P10_MODIFIED_BY := :APP_USER;',
-'                                  :P10_MODIFIED_DATE := l_now;',
-'                                      INSERT INTO student (',
-'                                            student_id, salutation, first_name, last_name, street_address, zip, phone,',
-'                                                  employer, registration_date, created_by, created_date, modified_by, modified_date',
-'                                                      ) VALUES (',
-'                                                            :P10_STUDENT_ID, :P10_SALUTATION, :P10_FIRST_NAME, :P10_LAST_NAME,',
-'                                                                  :P10_STREET_ADDRESS, :P10_ZIP, :P10_PHONE, :P10_EMPLOYER,',
-'                                                                        :P10_REGISTRATION_DATE, :APP_USER, l_now, :APP_USER, l_now',
-'                                                                            );',
-'                                                                              ELSIF :REQUEST = ''SAVE'' THEN',
-'                                                                                  UPDATE student',
-'                                                                                         SET salutation = :P10_SALUTATION,',
-'                                                                                                    first_name = :P10_FIRST_NAME,',
-'                                                                                                               last_name = :P10_LAST_NAME,',
-'                                                                                                                          street_address = :P10_STREET_ADDRESS,',
-'                                                                                                                                     zip = :P10_ZIP,',
-'                                                                                                                                                phone = :P10_PHONE,',
-'                                                                                                                                                           employer = :P10_EMPLOYER,',
-'                                                                                                                                                                      registration_date = :P10_REGISTRATION_DATE,',
-'                                                                                                                                                                                 modified_by = :APP_USER,',
-'                                                                                                                                                                                            modified_date = l_now',
-'                                                                                                                                                                                                 WHERE student_id = TO_NUMBER(:P10_STUDENT_ID)',
-'                                                                                                                                                                                                        AND created_by = :APP_USER;',
-'                                                                                                                                                                                                            IF SQL%ROWCOUNT <> 1 THEN',
-'                                                                                                                                                                                                                  raise_application_error(-20096, ''Only a '
-||'local Builder-owned student can be updated.'');',
-'                                                                                                                                                                                                                      END IF;',
-'                                                                                                                                                                                                                        ELSIF :REQUEST = ''DELETE'' THEN',
-'                                                                                                                                                                                                                            SELECT COUNT(*) INTO l_enrollm'
-||'ent_count',
-'                                                                                                                                                                                                                                  FROM enrollment',
-'                                                                                                                                                                                                                                       WHERE student_id = '
-||'TO_NUMBER(:P10_STUDENT_ID);',
-'                                                                                                                                                                                                                                           IF l_enrollment'
-||'_count > 0 THEN',
-'                                                                                                                                                                                                                                                 raise_app'
-||'lication_error(-20097, ''Cannot delete a student with enrollment records.'');',
-'                                                                                                                                                                                                                                                     END I'
-||'F;',
-'                                                                                                                                                                                                                                                         D'
-||'ELETE FROM student',
-'                                                                                                                                                                                                                                                          '
-||'    WHERE student_id = TO_NUMBER(:P10_STUDENT_ID)',
-'                                                                                                                                                                                                                                                          '
-||'           AND created_by = :APP_USER;',
-'                                                                                                                                                                                                                                                          '
-||'               IF SQL%ROWCOUNT <> 1 THEN',
-'                                                                                                                                                                                                                                                          '
-||'                     raise_application_error(-20098, ''Only a local Builder-owned student can be deleted.'');',
-'                                                                                                                                                                                                                                                          '
-||'                         END IF;',
-'                                                                                                                                                                                                                                                          '
-||'                           END IF;',
-'                                                                                                                                                                                                                                                          '
-||'                           END;'))
+'  IF :REQUEST = ''CREATE'' THEN',
+'    :P10_STUDENT_ID := student_id_seq.NEXTVAL;',
+'    :P10_CREATED_BY := :APP_USER;',
+'    :P10_CREATED_DATE := l_now;',
+'    :P10_MODIFIED_BY := :APP_USER;',
+'    :P10_MODIFIED_DATE := l_now;',
+'    INSERT INTO student (',
+'      student_id, salutation, first_name, last_name, street_address, zip, phone,',
+'      employer, registration_date, created_by, created_date, modified_by, modified_date',
+'    ) VALUES (',
+'      :P10_STUDENT_ID, :P10_SALUTATION, :P10_FIRST_NAME, :P10_LAST_NAME,',
+'      :P10_STREET_ADDRESS, :P10_ZIP, :P10_PHONE, :P10_EMPLOYER,',
+'      :P10_REGISTRATION_DATE, :APP_USER, l_now, :APP_USER, l_now',
+'    );',
+'  ELSIF :REQUEST = ''SAVE'' THEN',
+'    UPDATE student',
+'       SET salutation = :P10_SALUTATION,',
+'           first_name = :P10_FIRST_NAME,',
+'           last_name = :P10_LAST_NAME,',
+'           street_address = :P10_STREET_ADDRESS,',
+'           zip = :P10_ZIP,',
+'           phone = :P10_PHONE,',
+'           employer = :P10_EMPLOYER,',
+'           registration_date = :P10_REGISTRATION_DATE,',
+'           modified_by = :APP_USER,',
+'           modified_date = l_now',
+'     WHERE student_id = TO_NUMBER(:P10_STUDENT_ID);',
+'    IF SQL%ROWCOUNT <> 1 THEN',
+'      raise_application_error(-20096, ''Student not found or could not be updated.'');',
+'    END IF;',
+'  ELSIF :REQUEST = ''DELETE'' THEN',
+'    SELECT COUNT(*) INTO l_enrollment_count',
+'      FROM enrollment',
+'     WHERE student_id = TO_NUMBER(:P10_STUDENT_ID);',
+'    IF l_enrollment_count > 0 THEN',
+'      raise_application_error(-20097, ''Cannot delete a student with enrollment records.'');',
+'    END IF;',
+'    DELETE FROM student',
+'     WHERE student_id = TO_NUMBER(:P10_STUDENT_ID);',
+'    IF SQL%ROWCOUNT <> 1 THEN',
+'      raise_application_error(-20098, ''Student not found or could not be deleted.'');',
+'    END IF;',
+'  END IF;',
+'END;'))
 ,p_process_clob_language=>'PLSQL'
 ,p_error_display_location=>'INLINE_IN_NOTIFICATION'
 ,p_security_scheme=>wwv_flow_imp.id(1818666702754940)
@@ -3421,6 +3404,35 @@ wwv_flow_imp_page.create_page(
 ,p_alias=>'COURSE-OVERVIEW'
 ,p_step_title=>'Course Overview'
 ,p_autocomplete_on_off=>'OFF'
+,p_javascript_code_onload=>wwv_flow_string.join(wwv_flow_t_varchar2(
+'(function () {',
+'  var storageKey = ''qafeCourseOverviewReturnFocus'';',
+'',
+'  apex.jQuery(document).on(''click'', ''a[href*="section-overview?p13_course_no="]'', function () {',
+'    var detailUrl = new URL(this.href, window.location.href);',
+'    sessionStorage.setItem(storageKey, detailUrl.searchParams.get(''p13_course_no'') || '''');',
+'  });',
+'',
+'  function restoreCourseFocus() {',
+'    var courseNo = sessionStorage.getItem(storageKey);',
+'    if (!courseNo) {',
+'      return;',
+'    }',
+'',
+'    var courseLink = apex.jQuery(''a[href*="p13_course_no="]'').filter(function () {',
+'      var linkUrl = new URL(this.href, window.location.href);',
+'      return linkUrl.searchParams.get(''p13_course_no'') === courseNo;',
+'    }).first();',
+'',
+'    if (courseLink.length) {',
+'      sessionStorage.removeItem(storageKey);',
+'      courseLink.trigger(''focus'');',
+'    }',
+'  }',
+'',
+'  window.addEventListener(''pageshow'', restoreCourseFocus);',
+'  restoreCourseFocus();',
+'})();'))
 ,p_page_template_options=>'#DEFAULT#'
 ,p_required_role=>wwv_flow_imp.id(1818666702754940)
 ,p_protection_level=>'C'
@@ -3776,6 +3788,256 @@ wwv_flow_imp_page.create_page_item(
 );
 end;
 /
+prompt --application/pages/page_00014
+begin
+wwv_flow_imp_page.create_page(
+ p_id=>14
+,p_name=>'Form 3 Test Harness TEMP'
+,p_alias=>'FORM-3-TEST-HARNESS-TEMP'
+,p_step_title=>'Form 3 Test Harness TEMP'
+,p_autocomplete_on_off=>'OFF'
+,p_page_template_options=>'#DEFAULT#'
+,p_required_role=>wwv_flow_imp.id(1818666702754940)
+,p_required_patch=>wwv_flow_imp.id(1608012761049368)
+,p_protection_level=>'D'
+,p_deep_linking=>'N'
+,p_page_component_map=>'16'
+);
+wwv_flow_imp_page.create_page_plug(
+ p_id=>wwv_flow_imp.id(2008432731967301)
+,p_plug_name=>'Form 3 Test Harness TEMP'
+,p_title=>'Form 3 Test Harness (temporary)'
+,p_region_template_options=>'#DEFAULT#:t-Region--scrollBody'
+,p_plug_template=>4072358936313175081
+,p_plug_display_sequence=>20
+,p_plug_new_grid_row=>false
+,p_plug_new_grid_column=>false
+,p_location=>null
+,p_plug_source=>'<p>Temporary Form 3 validation and count harness. All tests use local synthetic fixtures; no automatic DML.</p>'
+,p_plug_required_role=>wwv_flow_imp.id(1818666702754940)
+,p_attributes=>wwv_flow_t_plugin_attributes(wwv_flow_t_varchar2(
+  'expand_shortcuts', 'N',
+  'output_as', 'HTML')).to_clob
+);
+wwv_flow_imp_page.create_page_button(
+ p_id=>wwv_flow_imp.id(2009014254967307)
+,p_button_sequence=>10
+,p_button_plug_id=>wwv_flow_imp.id(2008432731967301)
+,p_button_name=>'VALIDATE_COST'
+,p_button_action=>'SUBMIT'
+,p_button_template_options=>'#DEFAULT#'
+,p_button_template_id=>4072362960822175091
+,p_button_is_hot=>'Y'
+,p_button_image_alt=>'Validate cost'
+,p_grid_new_row=>'Y'
+);
+wwv_flow_imp_page.create_page_button(
+ p_id=>wwv_flow_imp.id(2009113780967308)
+,p_button_sequence=>10
+,p_button_plug_id=>wwv_flow_imp.id(2008432731967301)
+,p_button_name=>'VALIDATE_COURSE_NO'
+,p_button_action=>'SUBMIT'
+,p_button_template_options=>'#DEFAULT#'
+,p_button_template_id=>4072362960822175091
+,p_button_is_hot=>'Y'
+,p_button_image_alt=>'Validate course number'
+,p_grid_new_row=>'Y'
+);
+wwv_flow_imp_page.create_page_button(
+ p_id=>wwv_flow_imp.id(2009281306967309)
+,p_button_sequence=>10
+,p_button_plug_id=>wwv_flow_imp.id(2008432731967301)
+,p_button_name=>'LOAD_COUNTS'
+,p_button_action=>'SUBMIT'
+,p_button_template_options=>'#DEFAULT#'
+,p_button_template_id=>4072362960822175091
+,p_button_is_hot=>'Y'
+,p_button_image_alt=>'Load counts'
+,p_grid_new_row=>'Y'
+);
+wwv_flow_imp_page.create_page_button(
+ p_id=>wwv_flow_imp.id(2009443577967311)
+,p_button_sequence=>10
+,p_button_plug_id=>wwv_flow_imp.id(2008432731967301)
+,p_button_name=>'TOGGLE_STUDENTCOUNT'
+,p_button_action=>'DEFINED_BY_DA'
+,p_button_template_options=>'#DEFAULT#'
+,p_button_template_id=>4072362960822175091
+,p_button_is_hot=>'Y'
+,p_button_image_alt=>'Show/hide student count'
+,p_warn_on_unsaved_changes=>null
+,p_button_cattributes=>'aria-pressed="true"'
+,p_grid_new_row=>'Y'
+);
+wwv_flow_imp_page.create_page_item(
+ p_id=>wwv_flow_imp.id(2008553768967302)
+,p_name=>'P14_COURSE_COST'
+,p_item_sequence=>10
+,p_item_plug_id=>wwv_flow_imp.id(2008432731967301)
+,p_prompt=>'COURSE.COST test input'
+,p_placeholder=>'4.99, 5, 5.01'
+,p_display_as=>'NATIVE_NUMBER_FIELD'
+,p_cSize=>30
+,p_field_template=>1609121967514267634
+,p_item_template_options=>'#DEFAULT#'
+,p_attributes=>wwv_flow_t_plugin_attributes(wwv_flow_t_varchar2(
+  'number_alignment', 'left',
+  'virtual_keyboard', 'decimal')).to_clob
+);
+wwv_flow_imp_page.create_page_item(
+ p_id=>wwv_flow_imp.id(2008610660967303)
+,p_name=>'P14_SECTION_COURSE_NO'
+,p_item_sequence=>10
+,p_item_plug_id=>wwv_flow_imp.id(2008432731967301)
+,p_prompt=>'SECTION.COURSE_NO to validate'
+,p_display_as=>'NATIVE_NUMBER_FIELD'
+,p_cSize=>30
+,p_field_template=>1609121967514267634
+,p_item_template_options=>'#DEFAULT#'
+,p_attributes=>wwv_flow_t_plugin_attributes(wwv_flow_t_varchar2(
+  'number_alignment', 'left',
+  'virtual_keyboard', 'decimal')).to_clob
+);
+wwv_flow_imp_page.create_page_item(
+ p_id=>wwv_flow_imp.id(2008794414967304)
+,p_name=>'P14_COURSE_NO'
+,p_item_sequence=>10
+,p_item_plug_id=>wwv_flow_imp.id(2008432731967301)
+,p_prompt=>'COURSE.COURSE_NO target'
+,p_display_as=>'NATIVE_NUMBER_FIELD'
+,p_cSize=>30
+,p_field_template=>1609121967514267634
+,p_item_template_options=>'#DEFAULT#'
+,p_attributes=>wwv_flow_t_plugin_attributes(wwv_flow_t_varchar2(
+  'number_alignment', 'left',
+  'virtual_keyboard', 'decimal')).to_clob
+);
+wwv_flow_imp_page.create_page_item(
+ p_id=>wwv_flow_imp.id(2008878150967305)
+,p_name=>'P14_SECTIONCOUNT'
+,p_item_sequence=>10
+,p_item_plug_id=>wwv_flow_imp.id(2008432731967301)
+,p_prompt=>'SECTIONCOUNT'
+,p_display_as=>'NATIVE_DISPLAY_ONLY'
+,p_field_template=>1609121967514267634
+,p_item_template_options=>'#DEFAULT#'
+,p_attributes=>wwv_flow_t_plugin_attributes(wwv_flow_t_varchar2(
+  'based_on', 'VALUE',
+  'format', 'PLAIN',
+  'send_on_page_submit', 'Y',
+  'show_line_breaks', 'Y')).to_clob
+);
+wwv_flow_imp_page.create_page_item(
+ p_id=>wwv_flow_imp.id(2008931033967306)
+,p_name=>'P14_STUDENTCOUNT'
+,p_item_sequence=>10
+,p_item_plug_id=>wwv_flow_imp.id(2008432731967301)
+,p_prompt=>'STUDENTCOUNT'
+,p_display_as=>'NATIVE_DISPLAY_ONLY'
+,p_begin_on_new_line=>'N'
+,p_field_template=>1609121967514267634
+,p_item_template_options=>'#DEFAULT#'
+,p_attributes=>wwv_flow_t_plugin_attributes(wwv_flow_t_varchar2(
+  'based_on', 'VALUE',
+  'format', 'PLAIN',
+  'send_on_page_submit', 'Y',
+  'show_line_breaks', 'Y')).to_clob
+);
+wwv_flow_imp_page.create_page_da_event(
+ p_id=>wwv_flow_imp.id(2009582572967312)
+,p_name=>'Toggle STUDENTCOUNT visibility'
+,p_event_sequence=>10
+,p_triggering_element_type=>'BUTTON'
+,p_triggering_button_id=>wwv_flow_imp.id(2009443577967311)
+,p_bind_type=>'bind'
+,p_execution_type=>'IMMEDIATE'
+,p_bind_event_type=>'click'
+);
+wwv_flow_imp_page.create_page_da_action(
+ p_id=>wwv_flow_imp.id(2009612093967313)
+,p_event_id=>wwv_flow_imp.id(2009582572967312)
+,p_event_result=>'TRUE'
+,p_action_sequence=>10
+,p_execute_on_page_init=>'N'
+,p_action=>'NATIVE_JAVASCRIPT_CODE'
+,p_affected_elements_type=>'EVENT_SOURCE'
+,p_attribute_01=>wwv_flow_string.join(wwv_flow_t_varchar2(
+'var $container = apex.jQuery(''#P14_STUDENTCOUNT_CONTAINER'');',
+'var currentlyVisible = $container.is('':visible'');',
+'$container.toggle(!currentlyVisible);',
+'apex.jQuery(this.triggeringElement).attr(''aria-pressed'', currentlyVisible ? ''false'' : ''true'');'))
+);
+wwv_flow_imp_page.create_page_process(
+ p_id=>wwv_flow_imp.id(2009319117967310)
+,p_process_sequence=>10
+,p_process_point=>'AFTER_SUBMIT'
+,p_process_type=>'NATIVE_PLSQL'
+,p_process_name=>'Process Form 3 Test Harness TEMP'
+,p_process_sql_clob=>wwv_flow_string.join(wwv_flow_t_varchar2(
+'DECLARE',
+'BEGIN',
+'  IF :APP_USER <> ''QAFE_FORMS_BUILDER'' THEN',
+'    raise_application_error(-20095, ''Only QAFE_FORMS_BUILDER may run the local Form 3 test harness.'');',
+'  END IF;',
+'',
+'  IF :REQUEST = ''VALIDATE_COST'' THEN',
+'    IF :P14_COURSE_COST IS NULL THEN',
+'      apex_error.add_error(',
+'        p_message => ''Enter a course cost to validate.'',',
+'        p_display_location => apex_error.c_inline_in_notification);',
+'    ELSIF :P14_COURSE_COST < 5 THEN',
+'      apex_error.add_error(',
+'        p_message => ''Course cost must be at least 5.'',',
+'        p_display_location => apex_error.c_inline_in_notification);',
+'    ELSE',
+'      apex_application.g_print_success_message := ''Course cost accepted (minimum 5).'';',
+'    END IF;',
+'  ELSIF :REQUEST = ''VALIDATE_COURSE_NO'' THEN',
+'    IF :P14_SECTION_COURSE_NO IS NULL THEN',
+'      apex_error.add_error(',
+'        p_message => ''Enter a course number to validate.'',',
+'        p_display_location => apex_error.c_inline_in_notification);',
+'    ELSE',
+'      BEGIN',
+'        SELECT course_no',
+'          INTO :P14_COURSE_NO',
+'          FROM student.course',
+'         WHERE course_no = :P14_SECTION_COURSE_NO;',
+'        apex_application.g_print_success_message := ''Course found; COURSE.COURSE_NO updated to '' || :P14_COURSE_NO || ''.'';',
+'      EXCEPTION',
+'        WHEN NO_DATA_FOUND THEN',
+'          apex_error.add_error(',
+'            p_message => ''This course does not exist in the database.'',',
+'            p_display_location => apex_error.c_inline_in_notification);',
+'      END;',
+'    END IF;',
+'  ELSIF :REQUEST = ''LOAD_COUNTS'' THEN',
+'    IF :P14_COURSE_NO IS NULL THEN',
+'      apex_error.add_error(',
+'        p_message => ''Enter a course number before loading counts.'',',
+'        p_display_location => apex_error.c_inline_in_notification);',
+'    ELSE',
+'      SELECT COUNT(*)',
+'        INTO :P14_SECTIONCOUNT',
+'        FROM student.section',
+'       WHERE course_no = :P14_COURSE_NO;',
+'',
+'      SELECT COUNT(*)',
+'        INTO :P14_STUDENTCOUNT',
+'        FROM student.enrollment e',
+'        JOIN student.section s ON s.section_id = e.section_id',
+'       WHERE s.course_no = :P14_COURSE_NO;',
+'      apex_application.g_print_success_message := ''Form 3 counts refreshed for course '' || :P14_COURSE_NO || ''.'';',
+'    END IF;',
+'  END IF;',
+'END;'))
+,p_process_clob_language=>'PLSQL'
+,p_error_display_location=>'INLINE_IN_NOTIFICATION'
+,p_security_scheme=>wwv_flow_imp.id(1818666702754940)
+,p_internal_uid=>2009319117967310
+);
+end;
+/
 prompt --application/pages/page_09999
 begin
 wwv_flow_imp_page.create_page(
@@ -3985,6 +4247,21 @@ wwv_flow_imp_page.create_page_process(
 ,p_process_clob_language=>'PLSQL'
 ,p_internal_uid=>1620244858049434
 );
+end;
+/
+prompt --application/deployment/definition
+begin
+null;
+end;
+/
+prompt --application/deployment/checks
+begin
+null;
+end;
+/
+prompt --application/deployment/buildoptions
+begin
+null;
 end;
 /
 prompt --application/end_environment

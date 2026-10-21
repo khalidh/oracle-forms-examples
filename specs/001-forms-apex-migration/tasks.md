@@ -105,14 +105,14 @@ T019-T021 are complete for the QAFE_FORM1 test slice only. The one-fixture creat
 
 - [ ] T022 [US4] Record positive, negative, boundary, and no-partial-write cases for each confirmed validation in `tests/acceptance/US4-validation.md`
 
-The QAFE_FORM1 constraint cases and Form 2-related FIRST_NAME/ZIP source cases are recorded in `tests/acceptance/US4-validation.md`. Form 2 local access and synthetic fixtures are approved; its guarded pages are deployed, but runtime validation is still pending. T022 remains open for Form 3 rules and complete test execution.
+The QAFE_FORM1 constraint cases and Form 2-related FIRST_NAME/ZIP source cases are recorded in `tests/acceptance/US4-validation.md`. Form 2 local access and synthetic fixtures are approved. Runtime checks include null-FIRST_NAME insert/update rejection with SQL-confirmed no persistence; on 2026-10-21, the populated ZIP LOV offered 146 values, cancel caused no DML, and injected ZIP `99998` failed with `ORA-02291` and no partial row. The separate Forms ZIP helper caller/message timing remains unverified. Form 3 decisions R-06/R-07 were recorded on 2026-10-21; F3-VAL-01/F3-VAL-02 and F3-READ-01 passed in the temporary harness. T022 remains open for helper timing and remaining validation cases, plus Form 3 UX/navigation acceptance.
 
 ### Implementation for User Story 4
 
-- [ ] T023 [US4] Extend the trigger analysis with Forms timing, error handling, and exact validation source mappings from exports in `docs/trigger-analysis.md`
+- [x] T023 [US4] Extend the trigger analysis with Forms timing, error handling, and exact validation source mappings from exports in `docs/trigger-analysis.md`
 - [ ] T024 [US4] Implement approved server-side validations and user-facing error outcomes in `apex/QAFE_MIGRATION.sql` without weakening database constraints
 
-The QAFE_FORM1 trigger/absence inventory and Form 2 validation caller boundaries are recorded in `docs/trigger-analysis.md`. T023 remains open globally for Form 3 and a complete event inventory. T024 remains open for Form 3 rules and Form 2 runtime validation; Form 2 guarded create/update pages are implemented locally, but trigger-message propagation and no-partial-write behavior are unverified.
+The QAFE_FORM1 trigger/absence inventory, Form 2 validation caller boundaries, and all Form 3 trigger mappings are recorded in `docs/trigger-analysis.md`. A structural comparison verified all 3/11/8 exported triggers have F1-TR/F2-TR/F3-TR entries, so T023 is complete as source analysis only. Owner decisions R-06/R-07 and bounded test access are recorded; validations and derived counts were demonstrated in temporary disabled page 14. T024 remains open because no user-facing Form 3 journey is implemented; remaining Form 2 validation includes ZIP helper behavior. The guarded Form 2 pages are implemented locally; trigger-message propagation and no-partial-write behavior are verified for the null-FIRST_NAME insert and update cases.
 
 **Checkpoint**: No validation is considered preserved until its positive and negative cases pass against the isolated target.
 
@@ -135,7 +135,7 @@ T025-T027 cover Form 2 master-detail/ZIP and other related-data journeys; they a
 
 **Checkpoint**: User Story 5 passes when relationship integrity, selection/cancel flows, and concurrent-edit outcomes match approved tests.
 
-T025/T026 are complete as source-backed design artifacts. On 2026-10-20 the owner authorized local Form 2 access through `QAFE_FORMS_BUILDER`, with CRUD only for INSTRUCTOR/STUDENT; COURSE/SECTION remain read-only. Runtime create/update/delete passed for isolated synthetic INSTRUCTOR 115 and STUDENT 401; the `FIRST_NAME` null-update trigger rejected the update without changing the row; the ZIP LOV selection persisted as `INSTRUCTOR.ZIP=99999`; all synthetic rows, including ZIPCODE 99999, were removed. Authenticated navigation opened Instructors, Students, Course Overview, and Section Overview. Page 11 now passes COURSE_NO to the filtered Section Overview; the runtime empty-detail case passed for COURSE 454. T027 remains in progress pending a matching SECTION test fixture approval and the remaining cancel/no-result, return-state, and related-detail scenarios. No legacy/production data or network access is authorized.
+T025/T026 are complete as source-backed design artifacts. On 2026-10-20 the owner authorized local Form 2 access through `QAFE_FORMS_BUILDER`, with CRUD only for INSTRUCTOR/STUDENT; COURSE/SECTION remain read-only. Runtime CRUD, `FIRST_NAME` rejection, ZIP selection/cancel/FK rejection, and audit checks passed. On 2026-10-21 the owner approved one-time reads/copies of 257 STUDENT, 10 INSTRUCTOR, 146 referenced ZIPCODE, and all 62 SECTION rows from `ORACLE_FORMS_EXAMPLES` into `QAFE_CLEAN`; source data was not modified. People/ZIP rows matched field-by-field; SECTION IDs/keys are unique and instructor references valid, while 52 SECTION rows reference COURSE numbers absent from the source's three-course preview. Section Overview returns 4/3/3 rows for courses 454/455/456. Builder-only update/delete by ID passed on temporary imported-owner rows, which were deleted. Current counts are STUDENT=257, INSTRUCTOR=10, ZIPCODE=146, COURSE=3, SECTION=62, ENROLLMENT=0. At 390px, Course Overview and Section Overview had no horizontal overflow; browser Back restores focus. T027 remains in progress for historical stale-ZIP behavior, concurrency, and remaining related-data scenarios. No source writes, production use, or network access is authorized.
 
 ## Phase 8: User Story 6 - Accept Incremental Migration Slices (Priority: P2)
 
@@ -165,7 +165,9 @@ T028 acceptance is limited to the local QAFE_FORM1 slice; it does not accept bro
 - [ ] T033 Document backup, rollback, audit, logging, and recovery procedures for the approved deployment in `docs/migration-risks.md`
 - [x] T034 Run the approved QAFE_FORM1 end-to-end scenarios and update prerequisites, commands, and expected outcomes in `specs/001-forms-apex-migration/quickstart.md`
 
-T031 scenarios are defined but platform checks are not yet executed. T034 covers the approved local F1 demo/CRUD slice only; broader US2 scenarios remain open.
+T031 scenarios are defined; F1 Course Catalog keyboard search and 375/1280px overflow checks pass for the tested paths, as do F2 browser-Back keyboard/pointer focus and 390px layout checks. Screen-reader, browser-matrix, zoom, and remaining platform checks are still open. T034 covers the approved local F1 demo/CRUD slice only; broader US2 scenarios remain open.
+
+T032 remains open: `QAFE_CLEAN` contains three preview courses and the owner-approved copied Form 2 sample (62 sections, 257 students, 10 instructors), but this is not an approved production-like volume baseline; production latency evidence and targets remain unavailable. T033 includes bounded local-preview recovery notes in `docs/migration-risks.md`, but remains open for approved deployment backups, restore drills, audit retention, centralized logging, and RPO/RTO.
 
 ## Dependencies & Execution Order
 

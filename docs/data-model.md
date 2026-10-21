@@ -20,6 +20,14 @@
 
 The script declares `GRADE` foreign keys to `ENROLLMENT` and `GRADE_TYPE_WEIGHT`; `INSTRUCTOR.ZIP` and `STUDENT.ZIP` reference `ZIPCODE`; `COURSE.PREREQUISITE` is a self-reference. It does not declare FKs from SECTION to COURSE/INSTRUCTOR or ENROLLMENT to STUDENT/SECTION despite descriptive comments. Confirm intended integrity rules with the owner.
 
+## Owner-Approved Local Copy (2026-10-21)
+
+The owner approved a one-time copy from `ORACLE_FORMS_EXAMPLES` into `QAFE_CLEAN`. It includes all 62 SECTION rows, in addition to the approved people/ZIP copy. All SECTION IDs and `(COURSE_NO, SECTION_NO)` keys are unique, and every referenced instructor exists. The source PDB was not modified.
+
+The source has only three COURSE rows (454-456). Ten sections match those courses (454: 4, 455: 3, 456: 3); 52 SECTION rows reference COURSE numbers absent from the source COURSE table. The copy preserves these values as found; no extra COURSE rows were added. This is a source data-quality condition, not an enforced FK violation, because SECTION-to-COURSE is not declared as a constraint. The APEX master-detail path for the three preview courses displays only their matching 4/3/3 sections.
+
+The source contains 226 ENROLLMENT rows, but none joins through SECTION to an existing COURSE row. There are 17 ENROLLMENT references to missing STUDENT IDs and 84 references to missing SECTION IDs; 131 rows do join to an existing student and section, but those sections point to COURSE numbers absent from COURSE. ENROLLMENT was therefore not copied into the preview: a student-to-course page would have no truthful course data, and adding placeholder courses would invent business records. Obtain the missing COURSE data from an owner-approved source and resolve orphan references before importing enrollments.
+
 ## Views and sequences
 
 Views: `V_EX01_01_STUDENT`, `V_EX10_01_STUDENT`, `V_QAFE_FORM1_COURSE`, `V_QAFE_FORM2_COURSE`, `V_QAFE_FORM2_INSTRUCTOR`, `V_QAFE_FORM2_SECTION`, `V_QAFE_FORM2_STUDENT`.

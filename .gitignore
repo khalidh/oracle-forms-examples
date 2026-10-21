@@ -3,3 +3,10 @@
 /.env.apex.pending
 /.env.apex.previous
 /.env.qafe-clean
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+hs_err_pid*.log
+hs_err_pid*.mdmp
+replay_pid*.log
